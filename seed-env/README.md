@@ -27,11 +27,20 @@ Terraform, Python e Azure CLI Tools.
 > deploy continua indo para o seu Airflow self-hosted no Azure — este repo não
 > mexe nisso.
 
-> **Requisito de rede:** o **Astro CLI** e o **dbt** baixam artefatos de
-> `github.com` durante a instalação, então o ambiente precisa ter acesso ao
-> GitHub. No Codespaces isso é garantido. No Claude Code on the web depende da
-> política de rede do ambiente — se o GitHub estiver bloqueado, essas duas
-> ferramentas não instalam (as demais não dependem de GitHub).
+> **Requisito de rede (GitHub):** no **Claude Code on the web**, o proxy do
+> GitHub só libera download de *release assets* de repositórios **anexados à
+> sessão** — e não é possível anexar repos de outra conta (ex.: `dbt-labs`,
+> `astronomer`). Efeito prático:
+> - **dbt:** o `setup.sh` tenta a versão mais recente e, se o release do
+>   dbt-labs estiver bloqueado, **cai automaticamente para dbt 1.7.x**, que
+>   instala 100% do PyPI. Ou seja, dbt sempre fica disponível. Para forçar
+>   outra versão: `DBT_SPEC='dbt-snowflake==1.9.*' bash ./setup.sh`.
+> - **Astro CLI:** é binário de *release* do GitHub e **não** tem fallback no
+>   PyPI, então **não instala** no Claude web com o GitHub bloqueado.
+>
+> No **GitHub Codespaces** nada disso se aplica: o GitHub é acessível por
+> padrão e ambos (dbt mais recente e Astro) instalam normalmente. As demais
+> ferramentas (Terraform, `snow`, `cortex`, `az`) não dependem de GitHub.
 
 ## Plugin do Cortex Code para o Claude Code
 

@@ -86,7 +86,15 @@ install_terraform() {
 # Ajuste DBT_SPEC para fixar versão, ex.: DBT_SPEC='dbt-snowflake==1.9.*'
 # -----------------------------------------------------------------------------
 install_dbt() {
-  venv_app dbt dbt "${DBT_SPEC:-dbt-snowflake}"
+  # Tenta a versão desejada (default: adapter mais recente). Onde o github.com
+  # é acessível (Codespaces, ou rede liberada), instala a última.
+  if venv_app dbt dbt "${DBT_SPEC:-dbt-snowflake}"; then return 0; fi
+  # Fallback: dbt 1.7.x instala 100% do PyPI (não depende de release do GitHub),
+  # então funciona mesmo no Claude web onde os assets do dbt-labs ficam bloqueados.
+  echo "  (dbt: instalação padrão falhou — provável bloqueio de release do GitHub;" >&2
+  echo "   caindo para ${DBT_FALLBACK_SPEC:-dbt-snowflake==1.7.*}, que instala via PyPI)" >&2
+  rm -rf "${HOME}/.venvs/dbt"
+  venv_app dbt dbt "${DBT_FALLBACK_SPEC:-dbt-snowflake==1.7.*}"
 }
 
 # -----------------------------------------------------------------------------
