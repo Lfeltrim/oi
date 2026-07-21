@@ -1,0 +1,23 @@
+{
+  "name": "data-dev-env",
+  "image": "mcr.microsoft.com/devcontainers/python:3.11-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {},
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  "postCreateCommand": "bash ./setup.sh",
+  "remoteEnv": {
+    "PATH": "${containerEnv:HOME}/.local/bin:${containerEnv:PATH}"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "snowflake.snowflake-vsc",
+        "hashicorp.terraform",
+        "ms-python.python",
+        "ms-azuretools.vscode-azurecli"
+      ]
+    }
+  }
+}

@@ -1,0 +1,8 @@
+# Repositórios de trabalho no Azure DevOps a clonar.
+# Uma URL de clone HTTPS por linha. Linhas com # e linhas em branco são ignoradas.
+# NÃO coloque o PAT aqui — ele vem da variável de ambiente AZDO_PAT.
+#
+# Exemplos (descomente/edite):
+# https://dev.azure.com/minha-org/meu-projeto/_git/repo-terraform
+# https://dev.azure.com/minha-org/meu-projeto/_git/repo-dbt
+# https://dev.azure.com/minha-org/meu-projeto/_git/repo-airflow

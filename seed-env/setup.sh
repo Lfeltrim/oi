@@ -52,12 +52,19 @@ install_prereqs() {
   $SUDO apt-get install -y -qq \
     curl unzip git ca-certificates gnupg lsb-release \
     python3 python3-pip python3-venv >/dev/null || return 1
-  # pipx: instala apps Python em ambientes isolados
-  if ! have pipx; then
-    python3 -m pip install --user --quiet pipx >/dev/null 2>&1 \
-      || $SUDO apt-get install -y -qq pipx >/dev/null 2>&1 || return 1
-  fi
-  python3 -m pipx ensurepath >/dev/null 2>&1 || true
+}
+
+# Instala uma app Python num venv isolado e expõe o executável em ~/.local/bin.
+# Mais robusto que o pipx (não depende de uv nem de PATH global).
+#   venv_app <nome-do-venv> <executável> <specs-do-pip...>
+venv_app() {
+  local name="$1" bin="$2"; shift 2
+  local venv="${HOME}/.venvs/${name}"
+  python3 -m venv "$venv" || return 1
+  "$venv/bin/pip" install -q --upgrade pip >/dev/null 2>&1 || return 1
+  "$venv/bin/pip" install -q "$@" || return 1
+  ln -sf "$venv/bin/$bin" "$LOCAL_BIN/$bin"
+  have "$bin"
 }
 
 # -----------------------------------------------------------------------------
@@ -73,32 +80,38 @@ install_terraform() {
 }
 
 # -----------------------------------------------------------------------------
-# dbt (core + adapter Snowflake) via pipx
+# dbt em venv isolado. Instalar o adapter (dbt-snowflake) já traz o dbt-core e
+# o executável `dbt`. Requer github.com acessível (o parser do dbt é baixado de
+# um release do GitHub durante o build).
+# Ajuste DBT_SPEC para fixar versão, ex.: DBT_SPEC='dbt-snowflake==1.9.*'
 # -----------------------------------------------------------------------------
 install_dbt() {
-  pipx install dbt-core >/dev/null 2>&1 || pipx upgrade dbt-core >/dev/null 2>&1 || return 1
-  pipx inject dbt-core dbt-snowflake >/dev/null 2>&1 || return 1
+  venv_app dbt dbt "${DBT_SPEC:-dbt-snowflake}"
 }
 
 # -----------------------------------------------------------------------------
-# Astro CLI (Airflow local; deploy fica no seu Airflow self-hosted no Azure)
+# Astro CLI (Airflow local; deploy fica no seu Airflow self-hosted no Azure).
+# Instala em ~/.local/bin (sem sudo). Requer github.com acessível para baixar o
+# binário do release.
 # -----------------------------------------------------------------------------
 install_astro() {
-  curl -sSL https://install.astronomer.io | $SUDO bash -s >/dev/null 2>&1 || return 1
+  curl -sSL https://install.astronomer.io | bash -s -- -b "$LOCAL_BIN" >/dev/null 2>&1
+  have astro   # o instalador sai 0 mesmo se o download falhar; checa o binário
 }
 
 # -----------------------------------------------------------------------------
-# Snowflake CLI (snow) via pipx
+# Snowflake CLI (snow) em venv isolado
 # -----------------------------------------------------------------------------
 install_snow() {
-  pipx install snowflake-cli >/dev/null 2>&1 || pipx upgrade snowflake-cli >/dev/null 2>&1 || return 1
+  venv_app snowflake-cli snow snowflake-cli
 }
 
 # -----------------------------------------------------------------------------
 # Cortex Code CLI (cortex / CoCo) — instalador oficial da Snowflake
 # -----------------------------------------------------------------------------
 install_cortex() {
-  curl -LsS https://ai.snowflake.com/static/cc-scripts/install.sh | sh >/dev/null 2>&1 || return 1
+  curl -LsS https://ai.snowflake.com/static/cc-scripts/install.sh | sh >/dev/null 2>&1
+  have cortex
 }
 
 # -----------------------------------------------------------------------------

@@ -1,0 +1,9 @@
+# Segredos — nunca comitar
+.env
+
+# Repos de trabalho clonados localmente
+/work/
+
+# Lixo de sistema
+.DS_Store
+*.log
